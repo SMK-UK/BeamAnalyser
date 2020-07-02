@@ -23,21 +23,27 @@ path = '/Users/Message/Desktop/CCD data/20cm lens/'
 file_list = os.listdir(path)
 # extract relevant files and sort
 image_list = natsorted([i for i in file_list if i.endswith('.bmp')])
-# read image and subtract background - store in new array
-
+# determine array dimensions for new data
 img = Image.open(path + image_list[0])
 imsize = img.size
 
-data = np.empty(imsize, int(len(image_list)/2))
+''' read image and subtract background data - wont work if uneven number of files in folder '''
+
+# read image and subtract background - store in new array
+data = np.empty([int(len(image_list)/2), imsize[0], imsize[1]])
 for index, image in enumerate(image_list):
+    # break when half way through data
     if index < int(len(image_list)/2):
-        img = np.asarray(Image.open(path + image_list[2 * index]))
-        bkd = np.asarray(Image.open((path + image_list[2 * index + 1])))
-        data = img - bkd
+        # read then discard image
+        img = np.transpose(np.asarray(Image.open(path + image_list[2 * index])))
+        bkd = np.transpose(np.asarray(Image.open((path + image_list[2 * index + 1]))))
+        # array of data to fit
+        data[index,:,:] = img - bkd
     else:
         break
 
 ''' test data set - generate dummy gaussian in 2D and then extract FWHM in x and y, plotting fit to data '''
+
 # generate random gaussian with noise
 def gauss_2d(height, centre_x, centre_y, width_x, width_y):
     ''' Generates 2D Gaussian with given parameters:
@@ -74,3 +80,4 @@ gauss_test = ax.contourf(x, y, z)
 ax.set_title(' Random Beam Profile ')
 ax.set(xlabel='Pixel', ylabel='Pixel')
 fig.colorbar(gauss_test)
+fig.savefig(fname='/Users/Message/Desktop/GaussFit_Test.pdf', quality=95, format='pdf')
