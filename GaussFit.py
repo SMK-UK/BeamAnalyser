@@ -19,6 +19,11 @@ from scipy import optimize
 
 ''' Create functions to fit data '''
 
+# define neccesary functions
+def gauss_1d(height, centre, width):
+    '''Generates Gaussian with given parameters'''
+    return lambda x: height * np.exp(-(np.power(x - centre, 2) / (2 * width ** 2)))
+
 # generate 2D gaussian
 def gauss_2d(height, centre_x, centre_y, width_x, width_y):
     ''' Generates 2D Gaussian with given parameters:
@@ -77,44 +82,14 @@ for index, image in enumerate(image_list):
         # arrays of data, params and fit
         data[index, :, :] = np.absolute(img - bkd)
         params[index, :] = fitgauss_2d(data[index,:,:])
-        # convert to list to unpack
-        fit_params = params[index, :].tolist()
-        fit = gauss_2d(*fit_params)
     else:
         break
 
+mp.matshow(data[0,:], cmap=mp.cm.gist_earth_r)
 
-''' Test data set - generate dummy gaussian in 2D and then extract FWHM in x and y, plotting fit to data '''
+fit = gauss_2d(*params[0,:])
 
-# generate pixel grid
-x = np.arange(start=0, stop=960, step=1)
-y = np.arange(start=0, stop=1280, step=1)
-x, y = np.meshgrid(x, y)
-
-# gaussian attributes
-# amplitude
-height = np.random.randint(low=5, high=10, size=1)
-# centre point x
-x_0 = int(np.round(np.max(x)/2))
-centre_x = np.random.randint(low=x_0 - x_0 * 0.1, high=x_0 + x_0 * 0.1, size=1)
-# centre point y
-y_0 = int(np.round(np.max(y)/2))
-centre_y = np.random.randint(low=y_0 - y_0 * 0.1, high=y_0 + y_0 * 0.1, size=1)
-# width in x
-width_x = np.random.randint(low=x_0 - x_0 * 0.8 , high=x_0 - x_0 * 0.6, size=1)
-# width in y
-width_y = np.random.randint(low=y_0 - y_0 * 0.8, high=y_0 - y_0 * 0.6, size=1)
-
-# generate gaussian and add noise to data
-z = gauss_2d(height, centre_x, centre_y, width_x, width_y)(x, y)
-noise = 0.5 * np.random.normal(loc=0.6, scale=1, size=z.shape)
-z += noise
-
-# plot data
-fig, ax = mp.subplots(1, 1)
-gauss_test = ax.contourf(x, y, z)
-ax.set_title(' Random Beam Profile ')
-ax.set(xlabel='Pixel', ylabel='Pixel')
-fig.colorbar(gauss_test)
+mp.contour(fit(*np.indices(imsize)), cmap=mp.cm.copper)
+ax = mp.gca()
 
 print('finished')

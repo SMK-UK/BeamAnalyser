@@ -40,36 +40,38 @@ def fitgauss_2d(data):
     p, success = optimize.leastsq(err_fun, params)
     return p
 
-''' generate test data '''
+''' Test data set - generate dummy gaussian in 2D and then extract FWHM in x and y, plotting fit to data '''
 
-# amplitude
-height = np.random.randint(low=0, high=20, size=1)
-# centre point x
-centre_x = np.random.randint(low=1, high=5, size=1)
-# centre point y
-centre_y = np.random.randint(low=1, high=5, size=1)
-# width in x
-width_x = np.random.randint(low=50, high=80, size=1)
-# width in y
-width_y = np.random.randint(low=50, high=80, size=1)
-
-# simulate pixels and generate gaussian
-x = np.linspace(start=0, stop=501, num=500)
-y = x.copy()
+# generate pixel grid
+x = np.arange(start=-255, stop=255, step=1)
+y = np.arange(start=-255, stop=255, step=1)
 x, y = np.meshgrid(x, y)
+
+# gaussian attributes
+# amplitude
+height = np.random.randint(low=5, high=10, size=1)
+# centre point x
+x_0 = int(np.round(np.max(x)/2))
+centre_x = np.random.randint(low=x_0 - x_0 * 0.1, high=x_0 + x_0 * 0.1, size=1)
+# centre point y
+y_0 = int(np.round(np.max(y)/2))
+centre_y = np.random.randint(low=y_0 - y_0 * 0.1, high=y_0 + y_0 * 0.1, size=1)
+# width in x
+width_x = np.random.randint(low=x_0 - x_0 * 0.8 , high=x_0 - x_0 * 0.6, size=1)
+# width in y
+width_y = np.random.randint(low=y_0 - y_0 * 0.8, high=y_0 - y_0 * 0.6, size=1)
+
+# generate gaussian and add noise to data
 z = gauss_2d(height, centre_x, centre_y, width_x, width_y)(x, y)
-
-# generate and add noise to data
-noise = 0.5 * np.random.normal(loc=0.5, scale=1, size=z.shape)
+noise = 0.5 * np.random.normal(loc=0.6, scale=1, size=z.shape)
 z += noise
-
 '''
 # plot data
-fig_0, ax_0 = mp.subplots(1, 1)
+fig, ax = mp.subplots(1, 1)
 gauss_test = ax.contourf(x, y, z)
-ax_0.set_title(' Random Beam Profile ')
-ax_0.set(xlabel='Pixel', ylabel='Pixel')
-fig_0.colorbar(gauss_test)
+ax.set_title(' Random Beam Profile ')
+ax.set(xlabel='Pixel', ylabel='Pixel')
+fig.colorbar(gauss_test)
 mp.show()
 '''
 
