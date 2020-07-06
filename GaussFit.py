@@ -60,7 +60,6 @@ img = Image.open(path + image_list[0])
 imsize = img.size
 # read image position (requires xlrd)
 xlsx = pd.ExcelFile(path + xl_file[0])
-test = pd.read_excel(xlsx, sheet_name='Sheet1')
 z_pos = pd.read_excel(xlsx, sheet_name='Sheet1', header=2, usecols=['Distance (mm)'])
 
 ''' Read image and subtract background data - wont work if uneven number of files in folder '''
@@ -68,17 +67,19 @@ z_pos = pd.read_excel(xlsx, sheet_name='Sheet1', header=2, usecols=['Distance (m
 # read image and subtract background - store in new array
 data = np.empty([int(len(image_list)/2), imsize[0], imsize[1]])
 params = np.empty([int(len(image_list)/2), 5])
-fit = np.empty([int(len(image_list)/2), 5])
+# fit = np.empty([int(len(image_list)/2), 5])
 for index, image in enumerate(image_list):
     # break when half way through data
     if index < int(len(image_list)/2):
         # read then discard image (change to int32 as uint8 does not have -ve values)
         img = np.int32(np.transpose(np.asarray(Image.open(path + image_list[2 * index]))))
         bkd = np.int32(np.transpose(np.asarray(Image.open((path + image_list[2 * index + 1])))))
-        # array of data to fit
+        # arrays of data, params and fit
         data[index, :, :] = np.absolute(img - bkd)
         params[index, :] = fitgauss_2d(data[index,:,:])
-        fit[index, :] = gauss_2d(params[index, :])
+        # convert to list to unpack
+        fit_params = params[index, :].tolist()
+        fit = gauss_2d(*fit_params)
     else:
         break
 
@@ -115,3 +116,5 @@ gauss_test = ax.contourf(x, y, z)
 ax.set_title(' Random Beam Profile ')
 ax.set(xlabel='Pixel', ylabel='Pixel')
 fig.colorbar(gauss_test)
+
+print('finished')
