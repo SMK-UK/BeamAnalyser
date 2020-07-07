@@ -27,10 +27,10 @@ def moments(data):
     centre_y = (Y*data).sum()/total
     height = data.max()
     # extract entire column from data of y
-    col = data[:, int(centre_y)]
+    col = data[int(centre_x), :]
     width_x = np.sqrt(np.abs((np.arange(col.size) - centre_x) ** 2 * col).sum() / col.sum())
-    row = data[:, int(centre_x)]
-    width_y = np.sqrt(np.abs((np.arange(col.size) - centre_y) ** 2 * row).sum() / row.sum())
+    row = data[:, int(centre_y)]
+    width_y = np.sqrt(np.abs((np.arange(row.size) - centre_y) ** 2 * row).sum() / row.sum())
     return height, centre_x, centre_y, width_x, width_y
 
 def fitgauss_2d(data):
@@ -43,23 +43,23 @@ def fitgauss_2d(data):
 ''' Test data set - generate dummy gaussian in 2D and then extract FWHM in x and y, plotting fit to data '''
 
 # generate pixel grid
-x = np.arange(start=-255, stop=255, step=1)
-y = np.arange(start=-255, stop=255, step=1)
+x = np.arange(start=0, stop=1280, step=1)
+y = np.arange(start=0, stop=960, step=1)
 x, y = np.meshgrid(x, y)
 
 # gaussian attributes
 # amplitude
-height = np.random.randint(low=5, high=10, size=1)
+height = np.random.randint(low=90, high=120, size=1)
 # centre point x
 x_0 = int(np.round(np.max(x)/2))
-centre_x = np.random.randint(low=x_0 - x_0 * 0.1, high=x_0 + x_0 * 0.1, size=1)
+centre_x = np.random.randint(low=550 , high=700, size=1)
 # centre point y
 y_0 = int(np.round(np.max(y)/2))
-centre_y = np.random.randint(low=y_0 - y_0 * 0.1, high=y_0 + y_0 * 0.1, size=1)
+centre_y = np.random.randint(low=150, high=200, size=1)
 # width in x
-width_x = np.random.randint(low=x_0 - x_0 * 0.8 , high=x_0 - x_0 * 0.6, size=1)
+width_x = np.random.randint(low=35, high=40, size=1)
 # width in y
-width_y = np.random.randint(low=y_0 - y_0 * 0.8, high=y_0 - y_0 * 0.6, size=1)
+width_y = np.random.randint(low=35, high=40, size=1)
 
 # generate gaussian and add noise to data
 z = gauss_2d(height, centre_x, centre_y, width_x, width_y)(x, y)
@@ -75,10 +75,9 @@ fig.colorbar(gauss_test)
 mp.show()
 '''
 
-mp.matshow(z, cmap=mp.cm.gist_earth_r)
-
+fig, ax = mp.subplots()
+ax.matshow(z, cmap=mp.cm.gist_earth_r)
 params = fitgauss_2d(z)
 fit = gauss_2d(*params)
+ax.contour(fit(*np.indices(z.shape)), cmap=mp.cm.copper)
 
-mp.contour(fit(*np.indices(z.shape)), cmap=mp.cm.copper)
-ax = mp.gca()
