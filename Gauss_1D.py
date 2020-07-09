@@ -13,7 +13,6 @@ from PIL import Image
 import matplotlib.pyplot as mp
 from scipy import optimize
 
-# fit 1D gaussian to each matrix x-y dimension and extract parameters
 # interpolate data to generate model of beam profile
 # save and print data to excel sheet
 
@@ -26,23 +25,33 @@ def gauss_1d(height, centre, width):
 
 # fit a gaussian to data by calculating its 'moments' (mean, variance, width, height)
 def moments(data):
-    '''Calculates parameters of a gaussian function by calculating its moments (height, centre, width_x, width_y'''
+    '''Calculates parameters of a gaussian function by calculating
+    its moments (height, mean_x, width_x, mean_y, width_y'''
     height = np.amax(data)
     centre = np.where(data == height)
+    dim = np.size(centre)
+   # if dim[1] > 1:
+    #    for n in len(dim[1])
+    #        centre =
+
     mean_x = int(centre[0])
     mean_y = int(centre[1])
-    row = data[mean_x, :]
-    col = data[:, mean_y]
+    row = data[:, mean_y]
+    col = data[mean_x, :]
     width_x = np.sqrt(((row - height) ** 2).sum() / len(row))
     width_y = np.sqrt(((col - height) ** 2).sum() / len(col))
-    return height, mean_x, width_x
+    return height, mean_x, width_x, mean_y, width_y
 
 def fitgauss_1d(data):
-    '''Returns 2D Gaussian parameters from fit (height, x, width) '''
+    '''Returns seperate x-y 1D Gaussian parameters from fit to 2D gaussian data
+     (height, mean_x, width_x, mean_y, width_y)'''
     params = moments(data)
-    err_fun = lambda p: np.ravel(gauss_1d(*p)(*np.indices(data.shape)) - data)
-    p, success = optimize.leastsq(err_fun, params)
-    return p
+    err_fun_x = lambda p: np.ravel(gauss_1d(*p)(*np.indices(data[params[1], :].shape)))
+    err_fun_y = lambda q: np.ravel(gauss_1d(*p)(*np.indices(data[:, params[3]].shape)))
+    p, success_x = optimize.leastsq(err_fun_x, params[0:3])
+    q, success_y = optimize.leastsq(err_fun_y, (params[0], params[3], params[4]))
+    fit_data = np.array([p,q])
+    return fit_data
 
 ''' Set-up Image file names and processing information '''
 
@@ -63,7 +72,7 @@ z_pos = pd.read_excel(xlsx, sheet_name='Sheet1', header=2, usecols=['Distance (m
 
 # read image and subtract background - store in new array
 data = np.empty([int(len(image_list)/2), imsize[0], imsize[1]])
-params = np.empty([int(len(image_list)/2), 5])
+params = np.empty([int(len(image_list)/2), 2, 3])
 # fit = np.empty([int(len(image_list)/2), 5])
 for index, image in enumerate(image_list):
     # break when half way through data
@@ -73,15 +82,15 @@ for index, image in enumerate(image_list):
         bkd = np.int32(np.transpose(np.asarray(Image.open((path + image_list[2 * index + 1])))))
         # arrays of data, params and fit
         data[index, :, :] = np.absolute(img - bkd)
-        params[index, :] = fitgauss_1d(data[index,:,:])
+        params[index, :, :] = fitgauss_1d(data[index,:,:])
     else:
         break
 
 mp.matshow(data[0,:], cmap=mp.cm.gist_earth_r)
 
-fit = gauss_1d(*params[0,:])
+fit = gauss_1d(*params[0,0,:])
 
-mp.contour(fit(*np.indices(imsize)), cmap=mp.cm.copper)
+plot(x, fit)
 ax = mp.gca()
 
 print('finished')
