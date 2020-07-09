@@ -30,12 +30,15 @@ def moments(data):
     height = np.amax(data)
     centre = np.where(data == height)
     dim = np.size(centre)
-   # if dim[1] > 1:
-    #    for n in len(dim[1])
-    #        centre =
+    if dim > 2:
+        centre = np.array(centre)
+        mean = np.sum(centre, 1)
+        mean_x = round(mean[0] / len(centre[0]))
+        mean_y = round(mean[1] / len(centre[1]))
+    else:
+        mean_x = int(centre[0])
+        mean_y = int(centre[1])
 
-    mean_x = int(centre[0])
-    mean_y = int(centre[1])
     row = data[:, mean_y]
     col = data[mean_x, :]
     width_x = np.sqrt(((row - height) ** 2).sum() / len(row))
@@ -86,11 +89,14 @@ for index, image in enumerate(image_list):
     else:
         break
 
+# TODO - calculate beam propagation params from fitted data
+
+# TODO - generate plots of beam fit for each image
+
 mp.matshow(data[0,:], cmap=mp.cm.gist_earth_r)
 
 fit = gauss_1d(*params[0,0,:])
 
-plot(x, fit)
 ax = mp.gca()
 
 print('finished')
