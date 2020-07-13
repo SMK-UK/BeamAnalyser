@@ -37,7 +37,7 @@ def fitgauss_2d(data):
     '''Returns 2D Gaussian parameters from fit (height, x, y, width_x, width_y'''
     params = moments(data)
     err_fun = lambda p: np.ravel(gauss_2d(*p)(*np.indices(data.shape)) - data)
-    p, success = optimize.leastsq(err_fun, params)
+    p, success = optimize.least_squares(err_fun, params)
     return p
 
 ''' Test data set - generate dummy gaussian in 2D and then extract FWHM in x and y, plotting fit to data '''
