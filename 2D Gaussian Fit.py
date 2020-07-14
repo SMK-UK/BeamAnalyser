@@ -65,15 +65,6 @@ width_y = np.random.randint(low=35, high=40, size=1)
 z = gauss_2d(height, centre_x, centre_y, width_x, width_y)(x, y)
 noise = 0.5 * np.random.normal(loc=0.6, scale=1, size=z.shape)
 z += noise
-'''
-# plot data
-fig, ax = mp.subplots(1, 1)
-gauss_test = ax.contourf(x, y, z)
-ax.set_title(' Random Beam Profile ')
-ax.set(xlabel='Pixel', ylabel='Pixel')
-fig.colorbar(gauss_test)
-mp.show()
-'''
 
 fig, ax = mp.subplots()
 ax.matshow(z, cmap=mp.cm.gist_earth_r)
