@@ -61,19 +61,11 @@ def fitgauss(data):
 ''' Set-up Image file names and processing information '''
 
 # directory name for images
-<<<<<<< HEAD
-path = '/Users/Message/Desktop/CCD TEST/40cm lens/'
-file_list = os.listdir(path)
-# extract relevant files and sort
-image_list = natsorted([i for i in file_list if i.endswith('.bmp')])
-xl_file = [i for i in file_list if i.endswith('.xlsx')]
-=======
-path = '/Users/Message/Desktop/CCD Data/40cm lens/'
+path = '/Users/Message/Desktop/CCD TEST/20cm lens/'
 file_list = os.listdir(path)
 # extract relevant files and sort
 image_list = natsorted([i for i in file_list if i.endswith('.bmp')])
 xl_file = [i for i in file_list if i.endswith('.xls')]
->>>>>>> origin/master
 # determine array dimensions for new data
 img = Image.open(path + image_list[0])
 imsize = img.size
@@ -81,11 +73,7 @@ imsize = img.size
 xlsx = pd.ExcelFile(path + xl_file[0])
 df_orig = pd.read_excel(xlsx, sheet_name='Sheet1')
 # distance from lens (um)
-<<<<<<< HEAD
-z_pos = pd.read_excel(xlsx, sheet_name='Sheet1', header=2, usecols=['Distance (mm)'], nrows=14)
-=======
 z_pos = pd.read_excel(xlsx, sheet_name='Sheet1', header=2, usecols=['Distance (mm)'])
->>>>>>> origin/master
 z = np.unique(z_pos.to_numpy()) * 1e3
 # chip and pixel size (um)
 chip_size = 1/3 * 25.4
@@ -125,15 +113,7 @@ z_R = (w_0 ** 2 * np.pi) / wavelen
 data_out = np.concatenate((w_0, z_R, theta_D), axis=1)
 col_name = ['X-waist (micron)', 'Y-waist (micron)', 'X-Zr (micron', 'Y-Zr (micron)', 'X-theta D (deg)', 'Y-theta D (deg)']
 df_out = pd.DataFrame(data=data_out,columns=col_name)
-<<<<<<< HEAD
 df_new = pd.DataFrame.append(df_orig, df_out, ignore_index=True)
 
 with pd.ExcelWriter((path + xl_file[0]), engine='openpyxl', mode='w') as writer:
     df_out.to_excel(writer, sheet_name='New Data')
-=======
-''' df_new = pd.DataFrame.append(df_orig, df_out, ignore_index=True)
-
-with pd.ExcelWriter((path + xl_file[0]), engine='openpyxl', mode='w') as writer:
-    df_new.to_excel(writer, ignore_index=True)
-'''
->>>>>>> origin/master
