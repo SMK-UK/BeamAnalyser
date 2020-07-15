@@ -61,7 +61,7 @@ def fitgauss(data):
 ''' Set-up Image file names and processing information '''
 
 # directory name for images
-path = '/Users/Message/Desktop/CCD data/20cm lens/'
+path = '/Users/Message/Desktop/CCD Data/40cm lens/'
 file_list = os.listdir(path)
 # extract relevant files and sort
 image_list = natsorted([i for i in file_list if i.endswith('.bmp')])
@@ -71,13 +71,15 @@ img = Image.open(path + image_list[0])
 imsize = img.size
 # read image position (requires xlrd)
 xlsx = pd.ExcelFile(path + xl_file[0])
+df_orig = pd.read_excel(xlsx, sheet_name='Sheet1')
+# distance from lens (um)
 z_pos = pd.read_excel(xlsx, sheet_name='Sheet1', header=2, usecols=['Distance (mm)'])
-z = np.unique(z_pos.to_numpy())
-# chip and pixel size (mm)
+z = np.unique(z_pos.to_numpy()) * 1e3
+# chip and pixel size (um)
 chip_size = 1/3 * 25.4
-pix_size = 0.0045 # chip_size / imsize[0]
-# image laser wavelength
-wavelen = 606e-9
+pix_size = 4.5 # chip_size / imsize[0]
+# image laser wavelength(um)
+wavelen = 606e-3
 
 ''' Read image and subtract background data - wont work if uneven number of files in folder '''
 
@@ -97,15 +99,22 @@ for index, image in enumerate(image_list):
     else:
         break
 
-# calculate beam diameter, waist (mm) & divergence (deg)
+# calculate FWHM (mm) & divergence (deg)
 FWHM = 2 * np.sqrt(2 * np.log(2)) * fit_data[:, :, 2] * pix_size
 theta_D = np.empty(FWHM.shape)
 for col in range(len(FWHM.shape)):
     theta_D[:, col] = np.rad2deg(np.divide(FWHM[:, col], z))
 
+# calculate beam waist and rayleigh range (mm)
 w_0 = wavelen/ (np.pi*theta_D)
+z_R = (w_0 ** 2 * np.pi) / wavelen
 
+# append new data to original and write to file
+data_out = np.concatenate((w_0, z_R, theta_D), axis=1)
+col_name = ['X-waist (micron)', 'Y-waist (micron)', 'X-Zr (micron', 'Y-Zr (micron)', 'X-theta D (deg)', 'Y-theta D (deg)']
+df_out = pd.DataFrame(data=data_out,columns=col_name)
+''' df_new = pd.DataFrame.append(df_orig, df_out, ignore_index=True)
 
-
-
-# TODO - generate plots of beam fit for each image
+with pd.ExcelWriter((path + xl_file[0]), engine='openpyxl', mode='w') as writer:
+    df_new.to_excel(writer, ignore_index=True)
+'''
